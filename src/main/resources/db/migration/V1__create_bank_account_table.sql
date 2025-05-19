@@ -1,0 +1,7 @@
+CREATE TABLE bank_account (
+    id SERIAL PRIMARY KEY,
+    account_number VARCHAR(30) NOT NULL,
+    bank_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
