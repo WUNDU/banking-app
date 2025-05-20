@@ -1,31 +1,37 @@
-package ao.com.wundu.model;
+package ao.com.wundu.domain.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.sql.Timestamp;
 
 @Entity
+@Table(name = "bank_account")
 public class BankAccount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // O id tem que ser Long
+    private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "account_number", nullable = false, unique = true)
     private String accountNumber;  // Deve ser criptografado
 
-    @Column(nullable = false)
+    @Column(name = "bank_name", nullable = false)
     private String bankName;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column( name = "created_at", nullable = false)
+    private Timestamp createdAt;
 
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp
+    @Column( name = "updated_at", nullable = false)
+    private Timestamp updatedAt;
 
     public BankAccount() {
     }
 
-    public BankAccount(Long id, String accountNumber, String bankName, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public BankAccount(Long id, String accountNumber, String bankName, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.accountNumber = accountNumber;
         this.bankName = bankName;
@@ -59,19 +65,19 @@ public class BankAccount {
         this.bankName = bankName;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
 }
