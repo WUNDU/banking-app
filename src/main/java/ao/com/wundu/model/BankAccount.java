@@ -2,14 +2,13 @@ package ao.com.wundu.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 public class BankAccount {
 
     @Id
-    @Column(nullable = false, updatable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;  // O id tem que ser Long
 
     @Column(nullable = false, unique = true)
     private String accountNumber;  // Deve ser criptografado
@@ -26,7 +25,7 @@ public class BankAccount {
     public BankAccount() {
     }
 
-    public BankAccount(UUID id, String accountNumber, String bankName, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public BankAccount(Long id, String accountNumber, String bankName, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.accountNumber = accountNumber;
         this.bankName = bankName;
@@ -36,11 +35,11 @@ public class BankAccount {
 
     // Getters e Setters
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
