@@ -9,4 +9,5 @@ public interface BankAccountService {
 
     BankAccountResponse findById(Long id);
     BankAccountResponse create(BankAccountRequest request);
+    BankAccountResponse getDecryptedAccountNumber(Long id);
 }

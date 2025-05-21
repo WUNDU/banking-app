@@ -7,6 +7,8 @@ import ao.com.wundu.domain.model.BankAccount;
 import ao.com.wundu.infrastructure.exception.BankAccountNotFound;
 import ao.com.wundu.infrastructure.repository.BankAccountRepository;
 import ao.com.wundu.infrastructure.service.BankAccountService;
+import ao.com.wundu.util.AccountNumberGenerator;
+import ao.com.wundu.util.AesEncryptionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +33,34 @@ public class BankAccountServiceImpl implements BankAccountService {
     public BankAccountResponse create(BankAccountRequest request) {
 
         BankAccount entity = BankAccountMapper.toEntity(request);
+
+        String rawAccountNumber = AccountNumberGenerator.generate();
+
+        String encryptedAccountNumber = AesEncryptionUtil.encrypt(rawAccountNumber);
+
+        entity.setAccountNumber(encryptedAccountNumber);
+
         BankAccount saved = accountRepository.save(entity);
 
         return BankAccountMapper.toResponse(saved);
+    }
+
+    @Override
+    public BankAccountResponse getDecryptedAccountNumber(Long id) {
+
+        BankAccount account = accountRepository.findById(id)
+                .orElseThrow(() -> new BankAccountNotFound("Bank account não encontado"));
+
+        String decryptedAccountNumber = AesEncryptionUtil.decrypt(account.getAccountNumber());
+
+        BankAccountResponse accountResponse = BankAccountMapper.toResponse(account);
+
+        return new BankAccountResponse(
+                accountResponse.id(),
+                decryptedAccountNumber,
+                accountResponse.bankName(),
+                accountResponse.createdAt(),
+                accountResponse.updatedAt()
+        );
     }
 }

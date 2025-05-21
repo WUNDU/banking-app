@@ -26,6 +26,14 @@ public class BankAccountController {
                 .body(accountResponse);
     }
 
+    @GetMapping("/{id}/decrypted")
+    public ResponseEntity<BankAccountResponse> getDecrypted(@PathVariable Long id) {
+        BankAccountResponse accountResponse = accountService.getDecryptedAccountNumber(id);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(accountResponse);
+    }
+
     @PostMapping
     public ResponseEntity<BankAccountResponse> create(@RequestBody BankAccountRequest accountRequest) {
 
@@ -34,4 +42,6 @@ public class BankAccountController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(accountResponse);
     }
+
+
 }
