@@ -4,7 +4,7 @@ import ao.com.wundu.api.dto.BankAccountRequest;
 import ao.com.wundu.api.dto.BankAccountResponse;
 import ao.com.wundu.api.mapper.BankAccountMapper;
 import ao.com.wundu.domain.model.BankAccount;
-import ao.com.wundu.infrastructure.exception.BankAccountNotFound;
+import ao.com.wundu.infrastructure.exception.ResourceNotFoundException;
 import ao.com.wundu.infrastructure.repository.BankAccountRepository;
 import ao.com.wundu.infrastructure.service.BankAccountService;
 import ao.com.wundu.util.AccountNumberGenerator;
@@ -23,7 +23,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     public BankAccountResponse findById(Long id) {
 
         BankAccount account = accountRepository.findById(id)
-                .orElseThrow( () -> new BankAccountNotFound("Bank account não encontado") );
+                .orElseThrow( () -> new ResourceNotFoundException("Bank account não encontado") );
 
         return BankAccountMapper.toResponse(account);
 
@@ -49,7 +49,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     public BankAccountResponse getDecryptedAccountNumber(Long id) {
 
         BankAccount account = accountRepository.findById(id)
-                .orElseThrow(() -> new BankAccountNotFound("Bank account não encontado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Bank account não encontado"));
 
         String decryptedAccountNumber = AesEncryptionUtil.decrypt(account.getAccountNumber());
 

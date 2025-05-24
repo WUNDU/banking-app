@@ -12,7 +12,6 @@ public class BankAccountMapper {
     public static BankAccount toEntity(BankAccountRequest request) {
         BankAccount entity = new BankAccount();
 
-        entity.setAccountNumber(request.accountNumber());
         entity.setBankName(request.bankName());
 
         return entity;
@@ -34,4 +33,5 @@ public class BankAccountMapper {
                 .map(BankAccountMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
 }

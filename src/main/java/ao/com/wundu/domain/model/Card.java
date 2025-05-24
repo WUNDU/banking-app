@@ -42,11 +42,11 @@ public class Card {
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 
-    // Construtor padrão
+
     public Card() {
     }
 
-    // Construtor com campos obrigatórios
+
     public Card(String cardNumber, String lastFourDigits, String bankName, LocalDate expirationDate, BankAccount bankAccount) {
         this.cardNumber = cardNumber;
         this.lastFourDigits = lastFourDigits;

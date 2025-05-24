@@ -9,11 +9,6 @@ public record CardRequest(
         @NotNull(message = "Account ID cannot be null")
         Long accountId,
 
-        @NotBlank(message = "Card number cannot be empty")
-        @Size(min = 16, max = 16, message = "Card number must be exactly 16 digits")
-        @Pattern(regexp = "\\d{16}", message = "Card number must contain only digits")
-        String cardNumber,
-
         @NotBlank(message = "Last four digits cannot be empty")
         @Size(min = 4, max = 4, message = "Last four digits must be exactly 4 digits")
         @Pattern(regexp = "\\d{4}", message = "Last four digits must contain only digits")
