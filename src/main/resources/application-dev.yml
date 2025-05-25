@@ -20,6 +20,11 @@ spring:
       enabled: true
     hikari:
       initialization-fail-timeout: 60000
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 spring-doc:
   api-docs:
