@@ -5,7 +5,7 @@ services:
     image: postgres:13-alpine
     restart: always
     ports:
-      - "5433:5432"
+      - "5435:5432"
     environment:
       POSTGRES_DB: finances
       POSTGRES_USER: user
@@ -16,21 +16,36 @@ services:
       - app-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U user -d finances" ]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  rabbitmq:
+    container_name: rabbitmqbanking
+    image: rabbitmq:3-management
+    ports:
+      - "5675:5672"
+      - "15675:15672" # Interface de administração
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
 
     # Serviço da aplicação Java
   app:
-    container_name: my-banking
+    container_name: wundu-banking
     build: .
     ports:
-      - "8082:8081"
+      - "8088:8081"
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      WUNDU_RABBITMQ_HOST: rabbitmqbanking  # <-- muda isso!
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     networks:
       - app-network
     dns:
@@ -42,4 +57,4 @@ volumes:
 
 networks:
   app-network:
-    driver: bridge
+    external: true

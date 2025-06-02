@@ -21,7 +21,7 @@ spring:
     hikari:
       initialization-fail-timeout: 60000
   rabbitmq:
-    host: localhost
+    host: rabbitmqbanking
     port: 5672
     username: guest
     password: guest

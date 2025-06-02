@@ -1,5 +1,6 @@
 package ao.com.wundu.infrastructure.service.impl;
 
+import ao.com.wundu.api.dto.TransactionMessageDTO;
 import ao.com.wundu.api.dto.TransactionRequest;
 import ao.com.wundu.api.dto.TransactionResponse;
 import ao.com.wundu.domain.model.BankAccount;
@@ -75,22 +76,14 @@ public class TransactionServiceImpl implements TransactionService {
         transaction = transactionRepository.save(transaction);
         logger.info("Transação criada: transactionId={}", transaction.getId());
 
-        // Simular publicação de evento (RabbitMQ não configurado)
-        TransactionResponse event = new TransactionResponse(
-                transaction.getId(),
-                transaction.getBankAccount().getId(),
-                transaction.getCard() != null ? transaction.getCard().getId() : null,
-                transaction.getAmount(),
-                transaction.getMerchant(),
-                transaction.getType(),
-                transaction.getDateTime(),
-                transaction.getDescription()
-        );
-        logger.info("Evento transaction.created simulado (RabbitMQ pendente): {}", event);
-
-
-        // Descomentar quando RabbitMQ estiver configurado
         try {
+            TransactionMessageDTO event = new TransactionMessageDTO(
+                    transaction.getCard() != null ? transaction.getCard().getId() : null,
+                    transaction.getAmount(),
+                    transaction.getDescription(),
+                    transaction.getType(),
+                    transaction.getDateTime()
+            );
             rabbitTemplate.convertAndSend("transaction-exchange", "transaction.created", event);
             logger.info("Evento transaction.created publicado para transactionId={}", transaction.getId());
         } catch (Exception e) {

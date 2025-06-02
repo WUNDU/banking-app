@@ -27,6 +27,7 @@ public class CardMapper {
                 card.getId(),
                 card.getLastFourDigits(),
                 card.getBankName(),
+                card.getCardNumber(),
                 card.getExpirationDate(),
                 card.getBankAccount().getId(),
                 card.getCreatedAt()

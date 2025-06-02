@@ -7,6 +7,7 @@ public record CardResponse(
         Long id,
         String lastFourDigits,
         String bankName,
+        String cardNumber,
         LocalDate expirationDate,
         Long accountId,
         Timestamp createdAt
