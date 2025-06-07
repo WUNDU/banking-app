@@ -3,17 +3,13 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/finances
-    username: user
-    password: password
+    url: jdbc:postgresql://interchange.proxy.rlwy.net:32484/railway
+    username: postgres
+    password: WsdgCporTAgWzRCUQJgJADDRGkRtYEtz
     driver-class-name: org.postgresql.Driver
     jpa:
-      database-platform: org.hibernate.dialect.PostgreSQLDialect
       hibernate:
-        ddl-auto: update
-      show-sql: true
-      properties:
-        hibernate.id.new_generator_mappings: false
+        ddl-auto: none
     flyway:
       baseline-on-migrate: true
       locations: classpath:db/migration
@@ -22,7 +18,7 @@ spring:
       initialization-fail-timeout: 60000
 
   rabbitmq:
-    host: rabbitmqbanking
+    host: wundu-rabbitmq.railway.internal
     port: 5672
     username: guest
     password: guest

@@ -39,7 +39,7 @@ services:
     ports:
       - "8088:8081"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       WUNDU_RABBITMQ_HOST: rabbitmqbanking  # <-- muda isso!
     depends_on:
       postgres:

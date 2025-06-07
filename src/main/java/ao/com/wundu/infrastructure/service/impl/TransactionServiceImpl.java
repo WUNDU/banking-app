@@ -1,5 +1,6 @@
 package ao.com.wundu.infrastructure.service.impl;
 
+import ao.com.wundu.api.dto.TransactionEventDTO;
 import ao.com.wundu.api.dto.TransactionMessageDTO;
 import ao.com.wundu.api.dto.TransactionRequest;
 import ao.com.wundu.api.dto.TransactionResponse;
@@ -19,6 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -123,6 +127,26 @@ public class TransactionServiceImpl implements TransactionService {
                 t.getDateTime(),
                 t.getDescription()
         ));
+    }
+
+    public List<TransactionEventDTO> listTransactionsForFinances(Long cardId) {
+        logger.info("Listando transações para Finances API: cardId={}", cardId);
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> {
+                    logger.error("Cartão não encontrado: cardId={}", cardId);
+                    return new RuntimeException("Cartão não encontrado");
+                });
+
+        return transactionRepository.findByCardId(cardId)
+                .stream()
+                .map(transaction -> new TransactionEventDTO(
+                        cardId,
+                        transaction.getAmount(),
+                        transaction.getDescription(),
+                        transaction.getType(),
+                        transaction.getDateTime()
+                ))
+                .collect(Collectors.toList());
     }
 
 }

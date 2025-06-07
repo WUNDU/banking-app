@@ -28,6 +28,7 @@ public class SecurityConfig {
         return http
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/account/public/**").permitAll() // permite endpoints públicos
                         .anyRequest().authenticated()
                 )
