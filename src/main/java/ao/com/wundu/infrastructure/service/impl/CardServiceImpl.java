@@ -81,7 +81,6 @@ public class CardServiceImpl implements CardService {
 
         return new CardResponse(
                 cardResponse.id(),
-                cardResponse.lastFourDigits(),
                 cardResponse.bankName(),
                 decryptedAccountNumber,
                 cardResponse.expirationDate(),
@@ -105,9 +104,9 @@ public class CardServiceImpl implements CardService {
                 });
 
         // Validar bankName
-        if (!card.getBankName().equals(request.bankName())) {
+        if (!card.getBankAccount().getBankName().equals(request.bankName())) {
             logger.error("Banco inválido: esperado={}, recebido={}",
-                    card.getBankName(), request.bankName());
+                    card.getBankAccount().getBankName(), request.bankName());
             throw new BankingApiException("Banco inválido");
         }
 

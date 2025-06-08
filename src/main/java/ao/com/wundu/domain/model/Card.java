@@ -22,12 +22,6 @@ public class Card {
     @Column(name = "card_number", nullable = false, unique = true)
     private String cardNumber;
 
-    @Column(name = "last_four_digits", nullable = false, length = 4)
-    private String lastFourDigits;
-
-    @Column(name = "bank_name", nullable = false)
-    private String bankName;
-
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
@@ -47,10 +41,8 @@ public class Card {
     }
 
 
-    public Card(String cardNumber, String lastFourDigits, String bankName, LocalDate expirationDate, BankAccount bankAccount) {
+    public Card(String cardNumber, LocalDate expirationDate, BankAccount bankAccount) {
         this.cardNumber = cardNumber;
-        this.lastFourDigits = lastFourDigits;
-        this.bankName = bankName;
         this.expirationDate = expirationDate;
         this.bankAccount = bankAccount;
     }
@@ -69,22 +61,6 @@ public class Card {
 
     public void setCardNumber(String cardNumber) {
         this.cardNumber = cardNumber;
-    }
-
-    public String getLastFourDigits() {
-        return lastFourDigits;
-    }
-
-    public void setLastFourDigits(String lastFourDigits) {
-        this.lastFourDigits = lastFourDigits;
-    }
-
-    public String getBankName() {
-        return bankName;
-    }
-
-    public void setBankName(String bankName) {
-        this.bankName = bankName;
     }
 
     public LocalDate getExpirationDate() {

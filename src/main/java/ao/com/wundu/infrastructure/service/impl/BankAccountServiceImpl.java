@@ -4,6 +4,7 @@ import ao.com.wundu.api.dto.BankAccountRequest;
 import ao.com.wundu.api.dto.BankAccountResponse;
 import ao.com.wundu.api.mapper.BankAccountMapper;
 import ao.com.wundu.domain.model.BankAccount;
+import ao.com.wundu.infrastructure.exception.EntityExistsException;
 import ao.com.wundu.infrastructure.exception.ResourceNotFoundException;
 import ao.com.wundu.infrastructure.repository.BankAccountRepository;
 import ao.com.wundu.infrastructure.service.BankAccountService;
@@ -37,6 +38,15 @@ public class BankAccountServiceImpl implements BankAccountService {
         String rawAccountNumber = AccountNumberGenerator.generate();
 
         String encryptedAccountNumber = AesEncryptionUtil.encrypt(rawAccountNumber);
+
+        if (accountRepository.existsByAccountNumber(encryptedAccountNumber)) {
+            throw new EntityExistsException("Account number " + encryptedAccountNumber + " already exists");
+        }
+
+        // Validar bankingName duplicado
+        if (accountRepository.existsByBankName(request.bankName())) {
+            throw new EntityExistsException("Banking name " + request.bankName() + " already exists");
+        }
 
         entity.setAccountNumber(encryptedAccountNumber);
 

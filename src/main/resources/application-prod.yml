@@ -18,10 +18,17 @@ spring:
       initialization-fail-timeout: 60000
 
   rabbitmq:
-    host: wundu-rabbitmq.railway.internal
+    host: wundu-rabbitmq.railway.internal  # Domínio interno do RabbitMQ
     port: 5672
-    username: guest
-    password: guest
+    username: wunduuser
+    password: wundupass123
+    connection-timeout: 30000
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        max-interval: 5000
 
 spring-doc:
   api-docs:

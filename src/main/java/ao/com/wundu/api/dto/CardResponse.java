@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public record CardResponse(
         Long id,
-        String lastFourDigits,
+//        String lastFourDigits,
         String bankName,
         String cardNumber,
         LocalDate expirationDate,

@@ -14,9 +14,7 @@ public class CardMapper {
 
         Card entity = new Card();
 
-        entity.setBankName(request.bankName());
         entity.setExpirationDate(request.expirationDate());
-        entity.setLastFourDigits(request.lastFourDigits());
         entity.setBankAccount(bankAccount);
 
         return entity;
@@ -25,8 +23,7 @@ public class CardMapper {
     public static CardResponse toResponse(Card card) {
         return new CardResponse(
                 card.getId(),
-                card.getLastFourDigits(),
-                card.getBankName(),
+                card.getBankAccount().getBankName(),
                 card.getCardNumber(),
                 card.getExpirationDate(),
                 card.getBankAccount().getId(),

@@ -21,7 +21,7 @@ public class BankAccount {
     @Column(name = "account_number", nullable = false, unique = true)
     private String accountNumber;  // Deve ser criptografado
 
-    @Column(name = "bank_name", nullable = false)
+    @Column(name = "bank_name", nullable = false, unique = true)
     private String bankName;
 
     @CreationTimestamp
