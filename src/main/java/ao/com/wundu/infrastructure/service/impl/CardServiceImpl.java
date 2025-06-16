@@ -45,9 +45,9 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
 
-        if (bankAccount.getCards().size() >= 3) {
-            throw new IllegalStateException("Limite de cartões atingido");
-        }
+//        if (bankAccount.getCards().size() >= 3) {
+//            throw new IllegalStateException("Limite de cartões atingido");
+//        }
 
         Card entity = CardMapper.toEntity(request, bankAccount);
         String rawAccountNumber = AccountNumberGenerator.generate();
