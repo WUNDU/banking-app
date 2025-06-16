@@ -4,14 +4,14 @@ import ao.com.wundu.api.dto.*;
 import ao.com.wundu.api.mapper.BankAccountMapper;
 import ao.com.wundu.api.mapper.CardMapper;
 import ao.com.wundu.domain.model.Card;
-import ao.com.wundu.infrastructure.exception.BankingApiException;
-import ao.com.wundu.infrastructure.exception.ResourceNotFoundException;
+import ao.com.wundu.infrastructure.exception.*;
 import ao.com.wundu.infrastructure.repository.BankAccountRepository;
 import ao.com.wundu.infrastructure.repository.CardRepository;
 import ao.com.wundu.infrastructure.service.CardService;
 import ao.com.wundu.domain.model.BankAccount;
 import ao.com.wundu.util.AccountNumberGenerator;
 import ao.com.wundu.util.AesEncryptionUtil;
+import ao.com.wundu.util.ExpirationDateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,30 +35,52 @@ public class CardServiceImpl implements CardService {
     @Override
     public CardResponse create(CardRequest request) {
 
-        // Validar expirationDate (mínimo 6 meses no futuro)
-        if (request.expirationDate().isBefore(LocalDate.now().plusMonths(6))) {
-            throw new IllegalArgumentException("Expiration date must be at least 6 months in the future");
+        try {
+            BankAccount bankAccount = bankAccountRepository.findById(request.accountId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
+
+//            if (bankAccount.getCards().size() >= 3) {
+//                throw new CardLimitExceededException("Limite máximo de 3 cartões por conta atingido");
+//            }
+
+            Card entity = CardMapper.toEntity(request, bankAccount);
+            String rawCardNumber = AccountNumberGenerator.generate();
+            String encryptedCardNumber = AesEncryptionUtil.encrypt(rawCardNumber);
+
+            entity.setCardNumber(encryptedCardNumber);
+            Card savedCard = cardRepository.save(entity);
+
+            logger.info("Cartão criado com sucesso: cardId={}", savedCard.getId());
+            return CardMapper.toResponse(savedCard);
+
+        } catch (IllegalArgumentException e) {
+            throw new InvalidExpirationDAteException(e.getMessage());
         }
 
-
-        BankAccount bankAccount = bankAccountRepository.findById(request.accountId())
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
-
-
-//        if (bankAccount.getCards().size() >= 3) {
-//            throw new IllegalStateException("Limite de cartões atingido");
+//        // Validar expirationDate (mínimo 6 meses no futuro)
+//        if (request.expirationDate().isBefore(LocalDate.now().plusMonths(6))) {
+//            throw new IllegalArgumentException("Expiration date must be at least 6 months in the future");
 //        }
-
-        Card entity = CardMapper.toEntity(request, bankAccount);
-        String rawAccountNumber = AccountNumberGenerator.generate();
-
-        String encryptedAccountNumber = AesEncryptionUtil.encrypt(rawAccountNumber);
-
-        entity.setCardNumber(encryptedAccountNumber);
-
-        Card savedCard = cardRepository.save(entity);
-
-        return CardMapper.toResponse(savedCard);
+//
+//
+//        BankAccount bankAccount = bankAccountRepository.findById(request.accountId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
+//
+//
+////        if (bankAccount.getCards().size() >= 3) {
+////            throw new IllegalStateException("Limite de cartões atingido");
+////        }
+//
+//        Card entity = CardMapper.toEntity(request, bankAccount);
+//        String rawAccountNumber = AccountNumberGenerator.generate();
+//
+//        String encryptedAccountNumber = AesEncryptionUtil.encrypt(rawAccountNumber);
+//
+//        entity.setCardNumber(encryptedAccountNumber);
+//
+//        Card savedCard = cardRepository.save(entity);
+//
+//        return CardMapper.toResponse(savedCard);
     }
 
     @Override
@@ -94,38 +116,47 @@ public class CardServiceImpl implements CardService {
 
         logger.info("Validando cartão: bankName={}", request.bankName());
 
-        // Descriptografar número do cartão para comparação
-        String encryptedCardNumber = AesEncryptionUtil.encrypt(request.cardNumber());
-        Card card = cardRepository.findByCardNumber(encryptedCardNumber)
-                .orElseThrow(() -> {
-                    logger.error("Cartão não encontrado: cardNumber=****{}",
-                            request.cardNumber().substring(12));
-                    return new BankingApiException("Cartão não encontrado");
-                });
+        try {
+            // Descriptografar número do cartão para comparação
+            String encryptedCardNumber = AesEncryptionUtil.encrypt(request.cardNumber());
+            Card card = cardRepository.findByCardNumber(encryptedCardNumber)
+                    .orElseThrow(() -> {
+                        logger.error("Cartão não encontrado: cardNumber=****{}",
+                                request.cardNumber().substring(12));
+                        return new ResourceNotFoundException("Cartão não encontrado");
+                    });
 
-        // Validar bankName
-        if (!card.getBankAccount().getBankName().equals(request.bankName())) {
-            logger.error("Banco inválido: esperado={}, recebido={}",
-                    card.getBankAccount().getBankName(), request.bankName());
-            throw new BankingApiException("Banco inválido");
+            // Validar bankName
+            if (!card.getBankAccount().getBankName().equals(request.bankName())) {
+                logger.error("Banco inválido: esperado={}, recebido={}",
+                        card.getBankAccount().getBankName(), request.bankName());
+                throw new InvalidBankException("Banco inválido");
+            }
+
+            // Validar expirationDate (mínimo 6 meses no futuro)
+            try {
+                ExpirationDateUtil.validateAndAdjustExpirationDate(request.expirationDate());
+            } catch (IllegalArgumentException e) {
+                logger.error("Data de expiração inválida: {}", request.expirationDate());
+                throw new InvalidExpirationDAteException(e.getMessage());
+            }
+
+            // Simular aprovação do banco (90% de chance)
+            Random random = new Random();
+            boolean approved = random.nextDouble() < 0.9;
+
+            if (!approved) {
+                logger.warn("Simulação de aprovação falhou para cardId={}", card.getId());
+                throw new CardValidationException("Cartão recusado pela validação do banco");
+            }
+
+            logger.info("Cartão validado com sucesso: cardId={}", card.getId());
+            return new CardValidateResponse(card.getId(), true);
+        } catch (ResourceNotFoundException | InvalidBankException | InvalidExpirationDAteException | CardValidationException e) {
+            throw e; // Re-lançar exceções específicas
+        } catch (Exception e) {
+            logger.error("Erro inesperado na validação do cartão: {}", e.getMessage(), e);
+            throw new CardValidationException("Erro interno na validação do cartão");
         }
-
-        // Validar expirationDate (mínimo 6 meses no futuro)
-        if (request.expirationDate().isBefore(LocalDate.now().plusMonths(6))) {
-            logger.error("Data de expiração inválida: {}", request.expirationDate());
-            throw new BankingApiException("Data de expiração deve ser pelo menos 6 meses no futuro");
-        }
-
-        // Simular aprovação do banco (90% de chance)
-        Random random = new Random();
-        boolean approved = random.nextDouble() < 0.9;
-
-        if (!approved) {
-            logger.warn("Simulação de aprovação falhou para cardId={}", card.getId());
-            return new CardValidateResponse(card.getId(), false);
-        }
-
-        logger.info("Cartão validado com sucesso: cardId={}", card.getId());
-        return new CardValidateResponse(card.getId(), true);
     }
 }

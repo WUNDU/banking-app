@@ -4,6 +4,7 @@ import ao.com.wundu.api.dto.CardRequest;
 import ao.com.wundu.api.dto.CardResponse;
 import ao.com.wundu.domain.model.Card;
 import ao.com.wundu.domain.model.BankAccount;
+import ao.com.wundu.util.ExpirationDateUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ public class CardMapper {
 
         Card entity = new Card();
 
-        entity.setExpirationDate(request.expirationDate());
+        entity.setExpirationDate(ExpirationDateUtil.validateAndAdjustExpirationDate(request.expirationDate()));
         entity.setBankAccount(bankAccount);
 
         return entity;
@@ -25,7 +26,7 @@ public class CardMapper {
                 card.getId(),
                 card.getBankAccount().getBankName(),
                 card.getCardNumber(),
-                card.getExpirationDate(),
+                ExpirationDateUtil.formatToMMYY(card.getExpirationDate()),
                 card.getBankAccount().getId(),
                 card.getCreatedAt()
         );

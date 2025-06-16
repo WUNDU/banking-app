@@ -7,6 +7,7 @@ import ao.com.wundu.api.dto.TransactionResponse;
 import ao.com.wundu.domain.model.BankAccount;
 import ao.com.wundu.domain.model.Card;
 import ao.com.wundu.domain.model.Transaction;
+import ao.com.wundu.infrastructure.exception.AccountMismatchException;
 import ao.com.wundu.infrastructure.exception.ResourceNotFoundException;
 import ao.com.wundu.infrastructure.repository.BankAccountRepository;
 import ao.com.wundu.infrastructure.repository.CardRepository;
@@ -63,7 +64,7 @@ public class TransactionServiceImpl implements TransactionService {
                     });
             if (!card.getBankAccount().getId().equals(request.accountId())) {
                 logger.error("Cartão {} não pertence à conta {}", request.cardId(), request.accountId());
-                throw new ResourceNotFoundException("Cartão não pertence à conta especificada");
+                throw new AccountMismatchException("Cartão não pertence à conta especificada");
             }
         }
 
@@ -134,7 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
                     logger.error("Cartão não encontrado: cardId={}", cardId);
-                    return new RuntimeException("Cartão não encontrado");
+                    return new ResourceNotFoundException("Cartão não encontrado");
                 });
 
         return transactionRepository.findByCardId(cardId)
