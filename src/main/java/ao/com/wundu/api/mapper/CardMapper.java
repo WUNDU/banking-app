@@ -26,7 +26,7 @@ public class CardMapper {
                 card.getId(),
                 card.getBankAccount().getBankName(),
                 card.getCardNumber(),
-                ExpirationDateUtil.formatToMMYY(card.getExpirationDate()),
+                ExpirationDateUtil.formatToDDMM(card.getExpirationDate()),
                 card.getBankAccount().getId(),
                 card.getCreatedAt()
         );

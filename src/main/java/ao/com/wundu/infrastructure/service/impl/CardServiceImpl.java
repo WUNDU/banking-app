@@ -36,6 +36,8 @@ public class CardServiceImpl implements CardService {
     public CardResponse create(CardRequest request) {
 
         try {
+            logger.info("Criando cartão para accountId={}, expirationDate={}",
+                    request.accountId(), request.expirationDate());
             BankAccount bankAccount = bankAccountRepository.findById(request.accountId())
                     .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
@@ -50,11 +52,17 @@ public class CardServiceImpl implements CardService {
             entity.setCardNumber(encryptedCardNumber);
             Card savedCard = cardRepository.save(entity);
 
-            logger.info("Cartão criado com sucesso: cardId={}", savedCard.getId());
+            logger.info("Cartão criado com sucesso: cardId={}, expirationDate={}",
+                    savedCard.getId(), savedCard.getExpirationDate());
+
             return CardMapper.toResponse(savedCard);
 
         } catch (IllegalArgumentException e) {
+            logger.error("Erro de validação na criação do cartão: {}", e.getMessage());
             throw new InvalidExpirationDAteException(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Erro inesperado na criação do cartão: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro interno na criação do cartão");
         }
 
 //        // Validar expirationDate (mínimo 6 meses no futuro)
