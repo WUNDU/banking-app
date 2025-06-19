@@ -159,7 +159,7 @@ public class CardServiceImpl implements CardService {
             }
 
             logger.info("Cartão validado com sucesso: cardId={}", card.getId());
-            return new CardValidateResponse(card.getId(), true);
+            return new CardValidateResponse(card.getId(),  card.getBankAccount().getBankName(), true);
         } catch (ResourceNotFoundException | InvalidBankException | InvalidExpirationDAteException | CardValidationException e) {
             throw e; // Re-lançar exceções específicas
         } catch (Exception e) {
