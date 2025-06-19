@@ -122,7 +122,8 @@ public class CardServiceImpl implements CardService {
     @Override
     public CardValidateResponse validateCard(CardValidateRequest request) {
 
-        logger.info("Validando cartão: bankName={}", request.bankName());
+        logger.info("Validando cartão: cardNumber=****{}",
+                request.cardNumber().substring(Math.max(0, request.cardNumber().length() - 4)));
 
         try {
             // Descriptografar número do cartão para comparação
@@ -130,23 +131,31 @@ public class CardServiceImpl implements CardService {
             Card card = cardRepository.findByCardNumber(encryptedCardNumber)
                     .orElseThrow(() -> {
                         logger.error("Cartão não encontrado: cardNumber=****{}",
-                                request.cardNumber().substring(12));
+                                request.cardNumber().substring(Math.max(0, request.cardNumber().length() - 4)));
                         return new ResourceNotFoundException("Cartão não encontrado");
                     });
 
-            // Validar bankName
-            if (!card.getBankAccount().getBankName().equals(request.bankName())) {
-                logger.error("Banco inválido: esperado={}, recebido={}",
-                        card.getBankAccount().getBankName(), request.bankName());
-                throw new InvalidBankException("Banco inválido");
+            // Validar bankName apenas se fornecido (opcional para compatibilidade)
+            if (request.bankName() != null && !request.bankName().isBlank()) {
+                if (!card.getBankAccount().getBankName().equals(request.bankName())) {
+                    logger.error("Banco inválido: esperado={}, recebido={}",
+                            card.getBankAccount().getBankName(), request.bankName());
+                    throw new InvalidBankException("Banco inválido");
+                }
             }
 
-            // Validar expirationDate (mínimo 6 meses no futuro)
+            // Validar expirationDate
             try {
                 ExpirationDateUtil.validateAndAdjustExpirationDate(request.expirationDate());
             } catch (IllegalArgumentException e) {
                 logger.error("Data de expiração inválida: {}", request.expirationDate());
                 throw new InvalidExpirationDAteException(e.getMessage());
+            }
+
+            // Validar se o cartão não está expirado
+            if (card.getExpirationDate().isBefore(LocalDate.now())) {
+                logger.error("Cartão expirado: expirationDate={}", card.getExpirationDate());
+                throw new InvalidExpirationDAteException("Cartão expirado");
             }
 
             // Simular aprovação do banco (90% de chance)
@@ -158,13 +167,60 @@ public class CardServiceImpl implements CardService {
                 throw new CardValidationException("Cartão recusado pela validação do banco");
             }
 
-            logger.info("Cartão validado com sucesso: cardId={}", card.getId());
-            return new CardValidateResponse(card.getId(),  card.getBankAccount().getBankName(), true);
+            logger.info("Cartão validado com sucesso: cardId={}, bankName={}",
+                    card.getId(), card.getBankAccount().getBankName());
+            return new CardValidateResponse(card.getId(), card.getBankAccount().getBankName(), true);
+
         } catch (ResourceNotFoundException | InvalidBankException | InvalidExpirationDAteException | CardValidationException e) {
             throw e; // Re-lançar exceções específicas
         } catch (Exception e) {
             logger.error("Erro inesperado na validação do cartão: {}", e.getMessage(), e);
             throw new CardValidationException("Erro interno na validação do cartão");
         }
+
+//        logger.info("Validando cartão: bankName={}", request.bankName());
+//
+//        try {
+//            // Descriptografar número do cartão para comparação
+//            String encryptedCardNumber = AesEncryptionUtil.encrypt(request.cardNumber());
+//            Card card = cardRepository.findByCardNumber(encryptedCardNumber)
+//                    .orElseThrow(() -> {
+//                        logger.error("Cartão não encontrado: cardNumber=****{}",
+//                                request.cardNumber().substring(12));
+//                        return new ResourceNotFoundException("Cartão não encontrado");
+//                    });
+//
+//            // Validar bankName
+//            if (!card.getBankAccount().getBankName().equals(request.bankName())) {
+//                logger.error("Banco inválido: esperado={}, recebido={}",
+//                        card.getBankAccount().getBankName(), request.bankName());
+//                throw new InvalidBankException("Banco inválido");
+//            }
+//
+//            // Validar expirationDate (mínimo 6 meses no futuro)
+//            try {
+//                ExpirationDateUtil.validateAndAdjustExpirationDate(request.expirationDate());
+//            } catch (IllegalArgumentException e) {
+//                logger.error("Data de expiração inválida: {}", request.expirationDate());
+//                throw new InvalidExpirationDAteException(e.getMessage());
+//            }
+//
+//            // Simular aprovação do banco (90% de chance)
+//            Random random = new Random();
+//            boolean approved = random.nextDouble() < 0.9;
+//
+//            if (!approved) {
+//                logger.warn("Simulação de aprovação falhou para cardId={}", card.getId());
+//                throw new CardValidationException("Cartão recusado pela validação do banco");
+//            }
+//
+//            logger.info("Cartão validado com sucesso: cardId={}", card.getId());
+//            return new CardValidateResponse(card.getId(),  card.getBankAccount().getBankName(), true);
+//        } catch (ResourceNotFoundException | InvalidBankException | InvalidExpirationDAteException | CardValidationException e) {
+//            throw e; // Re-lançar exceções específicas
+//        } catch (Exception e) {
+//            logger.error("Erro inesperado na validação do cartão: {}", e.getMessage(), e);
+//            throw new CardValidationException("Erro interno na validação do cartão");
+//        }
     }
 }
